@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mazegen"
+version = "1.0.0"
+description = "fucked up thing made by urs truly"
+authors = [
+    {name = "jzorreta, joada-si"}
+]
+requires-python = ">=3.10"
+readme = "mazegen/README.md"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["mazegen*"]
