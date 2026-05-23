@@ -5,7 +5,6 @@ from mazegen.generator import MazeGenerator
 
 
 def parse_config(path: str) -> Dict[str, Any]:
-    """Reads raw key-value pairs from the configuration file"""
     config: Dict[str, str] = {}
     try:
         with open(path, 'r') as f:
@@ -41,7 +40,6 @@ def parse_config(path: str) -> Dict[str, Any]:
 
 
 def get_validated_config(raw_config: Dict[str, Any]) -> Dict[str, Any]:
-    """Validates and converts raw config strings into proper Python types"""
     try:
         width = int(raw_config['WIDTH'])
         height = int(raw_config['HEIGHT'])
@@ -64,7 +62,6 @@ def get_validated_config(raw_config: Dict[str, Any]) -> Dict[str, Any]:
             print("Error: Entry and exit coordinates must be different.")
             sys.exit(1)
 
-        # Disallow placing entry/exit inside the stamped "42" logo.
         pat_w = len(MazeGenerator.PATTERN_42[0])
         pat_h = len(MazeGenerator.PATTERN_42)
         reserved = set()
