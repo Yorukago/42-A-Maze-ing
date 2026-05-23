@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by jzorreta, joada-si.*
+*This project has been created as part of the 42 curriculum by jzorreta, ljeronim.*
 
 # A-Maze-ing
 
@@ -49,12 +49,12 @@ grid = maze.get_grid()
 ## Resources
 - [Wikipedia: Maze generation algorithms](https://en.wikipedia.org/wiki/Maze_generation_algorithm)
 - [Astrolog.org: Maze types](http://www.astrolog.org/labyrnth/algrithm.htm)
-- **AI Usage**: We used AI assistance (specifically the Antigravity agent) to structure the project scaffolding, brainstorm DFS implementation logic, and refine the ANSI terminal rendering interface to ensure a beautiful pink aesthetic.
+- **AI Usage**: We used AI assistance to structure the project scaffolding, brainstorm DFS implementation logic, and refine the ANSI terminal rendering interface to ensure good aestethics, subject to change btw
 
 ## Team and Project Management
 - **Roles**:
   - `jzorreta`: Core algorithm logic and configuration parsing.
-  - `joada-si`: Terminal UI renderer and pathfinding solver.
+  - `ljeronim`: Terminal UI renderer and the most curious person to live in this world
 - **Planning**: We initially planned to use Prim's algorithm but pivoted to DFS recursive backtracker mid-project due to the longer, more natural-looking corridors it produces.
 - **Pros/Cons**: Pair programming the 42-stamp integration went extremely well. Debugging the bitwise wall carving was challenging but a great learning experience.
 - **Tools**: We used `make` for automation, `flake8`/`mypy` for linting, and standard Python libraries.
