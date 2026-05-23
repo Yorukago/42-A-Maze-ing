@@ -1,6 +1,8 @@
 import sys
 from typing import Dict, Any
 
+from mazegen.generator import MazeGenerator
+
 
 def parse_config(path: str) -> Dict[str, Any]:
     """Reads raw key-value pairs from the configuration file"""
@@ -52,6 +54,33 @@ def get_validated_config(raw_config: Dict[str, Any]) -> Dict[str, Any]:
 
         if not (0 <= entry[0] < width and 0 <= entry[1] < height):
             print("Error: Entry coordinates are out of maze bounds.")
+            sys.exit(1)
+
+        if not (0 <= exit_point[0] < width and 0 <= exit_point[1] < height):
+            print("Error: Exit coordinates are out of maze bounds.")
+            sys.exit(1)
+
+        if entry == exit_point:
+            print("Error: Entry and exit coordinates must be different.")
+            sys.exit(1)
+
+        # Disallow placing entry/exit inside the stamped "42" logo.
+        pat_w = len(MazeGenerator.PATTERN_42[0])
+        pat_h = len(MazeGenerator.PATTERN_42)
+        reserved = set()
+        if width >= pat_w + 4 and height >= pat_h + 4:
+            ox = (width - pat_w) // 2
+            oy = (height - pat_h) // 2
+            for r in range(pat_h):
+                for c in range(pat_w):
+                    if MazeGenerator.PATTERN_42[r][c] in ('1', 'X'):
+                        reserved.add((ox + c, oy + r))
+
+        if entry in reserved:
+            print("Error: Entry coordinates are inside the '42' logo area.")
+            sys.exit(1)
+        if exit_point in reserved:
+            print("Error: Exit coordinates are inside the '42' logo area.")
             sys.exit(1)
 
         return {

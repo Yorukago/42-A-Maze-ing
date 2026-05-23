@@ -1,4 +1,4 @@
-from maze.src.generator import MazeGenerator
+from .generator import MazeGenerator
 from .parsing import parse_config, get_validated_config
 
 __version__ = "1.0.0"
