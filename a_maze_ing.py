@@ -1,8 +1,9 @@
 import sys
 import random
+from typing import Optional
 from mazegen.parsing import parse_config, get_validated_config
 from mazegen.generator import MazeGenerator
-from mazegen.renderer import MazeRenderer
+from mazegen.renderer import FactoryResult
 
 
 def _reserved_42_cells(width: int, height: int) -> set[tuple[int, int]]:
@@ -64,12 +65,14 @@ def main() -> None:
 
     first_run = [True]
 
-    def factory(new_width=None, new_height=None):
+    def factory(
+        new_width: Optional[int] = None,
+        new_height: Optional[int] = None,
+    ) -> FactoryResult:
         if new_width is not None:
             conf['width'] = new_width
         if new_height is not None:
             conf['height'] = new_height
-  
         reserved = _reserved_42_cells(conf["width"], conf["height"])
 
         conf["entry"] = _nearest_free_cell(
@@ -86,8 +89,11 @@ def main() -> None:
             avoid={conf["entry"]},
         )
 
-        seed = conf['seed'] if first_run[0] else random.randint(1, 1000000)
-        first_run[0] = False
+        if first_run[0]:
+            seed = conf['seed']
+            first_run[0] = False
+        else:
+            seed = random.randint(1, 1_000_000)
 
         maze = MazeGenerator(
             width=conf['width'],
@@ -96,7 +102,16 @@ def main() -> None:
         )
 
         maze.stamp_42()
-        return maze, conf['entry'], conf['exit'], conf['perfect'], conf['output']
+        return (
+            maze, conf['entry'], conf['exit'], conf['perfect'], conf['output']
+        )
+
+    if conf['display'] == 'mlx':
+        from mazegen.renderer_mlx import (  # type: ignore[import-not-found]
+            MazeRenderer,
+        )
+    else:
+        from mazegen.renderer import MazeRenderer
 
     renderer = MazeRenderer(factory)
     renderer.run()
