@@ -7,4 +7,4 @@ EXIT=10,10
 OUTPUT_FILE=maze.txt
 PERFECT=False
 SEED=42
-DISPLAY=mlx
+DISPLAY=ascii
