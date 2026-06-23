@@ -1,120 +1,43 @@
+"""
+A-Maze-ing
+Wires the three public pieces of the mazegen package together:
+
+    parser(path)  ->  fills Config
+    generator()   ->  builds, solves, and saves the maze
+    renderer      ->  replays and displays it
+
+Nothing here reaches into package internals, only parser, generator,
+and Config are used
+"""
+
 import sys
-import random
-from typing import Optional
-from mazegen.parsing import parse_config, get_validated_config
-from mazegen.generator import MazeGenerator
-from mazegen.renderer import FactoryResult
-
-
-def _reserved_42_cells(width: int, height: int) -> set[tuple[int, int]]:
-    pat_w = len(MazeGenerator.PATTERN_42[0])
-    pat_h = len(MazeGenerator.PATTERN_42)
-    if width < pat_w + 4 or height < pat_h + 4:
-        return set()
-
-    ox = (width - pat_w) // 2
-    oy = (height - pat_h) // 2
-
-    reserved: set[tuple[int, int]] = set()
-    for r in range(pat_h):
-        for c in range(pat_w):
-            if MazeGenerator.PATTERN_42[r][c] in ("1", "X"):
-                reserved.add((ox + c, oy + r))
-    return reserved
-
-
-def _nearest_free_cell(
-    start: tuple[int, int],
-    *,
-    width: int,
-    height: int,
-    reserved: set[tuple[int, int]],
-    avoid: set[tuple[int, int]] | None = None,
-) -> tuple[int, int]:
-    avoid = avoid or set()
-
-    x0, y0 = start
-    x0 = min(max(x0, 0), width - 1)
-    y0 = min(max(y0, 0), height - 1)
-
-    # BFS by Manhattan distance (guarantees nearest in steps).
-    from collections import deque
-
-    q = deque([(x0, y0)])
-    seen = {(x0, y0)}
-    while q:
-        x, y = q.popleft()
-        if (x, y) not in reserved and (x, y) not in avoid:
-            return (x, y)
-        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < width and 0 <= ny < height and (nx, ny) not in seen:
-                seen.add((nx, ny))
-                q.append((nx, ny))
-
-    raise ValueError("No valid cell available for entry/exit.")
+from mazegen import parser, generator, ConfigError
 
 
 def main() -> None:
+    """
+    Parse the config given on the command line, build the maze, then display
+
+    On any configuration error a clean message is printed and the program
+    exits with status 1 instead of crashing
+    """
     if len(sys.argv) != 2:
-        print("Usage: python3 a_maze_ing.py config.txt")
+        print("Usage: python3 a_maze_ing.py <config.txt>")
         sys.exit(1)
 
-    raw_data = parse_config(sys.argv[1])
-    conf = get_validated_config(raw_data)
+    try:
+        parser(sys.argv[1])
+    except ConfigError as error:
+        print(f"\033[38;2;255;0;111m[ERROR]\033[0m - {error}")
+        sys.exit(1)
 
-    first_run = [True]
+    result = generator()
 
-    def factory(
-        new_width: Optional[int] = None,
-        new_height: Optional[int] = None,
-    ) -> FactoryResult:
-        if new_width is not None:
-            conf['width'] = new_width
-        if new_height is not None:
-            conf['height'] = new_height
-        reserved = _reserved_42_cells(conf["width"], conf["height"])
+    if not result.solution:
+        print("Warning: the generated maze has no entry-to-exit path.")
 
-        conf["entry"] = _nearest_free_cell(
-            conf["entry"],
-            width=conf["width"],
-            height=conf["height"],
-            reserved=reserved,
-        )
-        conf["exit"] = _nearest_free_cell(
-            conf["exit"],
-            width=conf["width"],
-            height=conf["height"],
-            reserved=reserved,
-            avoid={conf["entry"]},
-        )
-
-        if first_run[0]:
-            seed = conf['seed']
-            first_run[0] = False
-        else:
-            seed = random.randint(1, 1_000_000)
-
-        maze = MazeGenerator(
-            width=conf['width'],
-            height=conf['height'],
-            seed=seed
-        )
-
-        maze.stamp_42()
-        return (
-            maze, conf['entry'], conf['exit'], conf['perfect'], conf['output']
-        )
-
-    if conf['display'] == 'mlx':
-        from mazegen.renderer_mlx import (  # type: ignore[import-not-found]
-            MazeRenderer,
-        )
-    else:
-        from mazegen.renderer import MazeRenderer
-
-    renderer = MazeRenderer(factory)
-    renderer.run()
+    from renderer import MazeRenderer
+    MazeRenderer(result).run()
 
 
 if __name__ == "__main__":
